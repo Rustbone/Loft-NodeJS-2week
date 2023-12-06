@@ -1,0 +1,14 @@
+{
+  "mail": {
+    "smtp": {
+      "host": "smtp.example.com",
+      "port": 587,
+      "secure": false,
+      "auth": {
+        "user": "your-email@example.com",
+        "pass": "your-email-password"
+      }
+    },
+    "subject": "Новое письмо"
+  }
+}
