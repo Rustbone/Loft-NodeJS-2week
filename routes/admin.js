@@ -12,16 +12,18 @@ const fs = require('fs')
 router.get('/', (req, res, next) => {
   // TODO: Реализовать, подстановку в поля ввода формы 'Счетчики'
   // актуальных значений из сохраненых (по желанию)
-  db.update('skills', (skills) => {
-    return skills.map((skill) => {
-      if (skill.id === 0) {
-        return { ...skill, number: '' }
-      }
-      return skill
-   }).write()
-  }) 
+  // db.update('skills', (skills) => {
+  //   return skills.map((skill) => {
+  //     if (skill.id === 0) {
+  //       return { ...skill, number: '' }
+  //     }
+  //     return skill
+  //  }).write()
+  // }) 
+  const msgskill = req.flash('msgskill')[0]
+  const msgfile = req.flash('msgfile')[0]
 
-  res.render('pages/admin', { title: 'Admin page' }) 
+  res.render('pages/admin', { title: 'Admin page', msgskill, msgfile }) 
 })
 
 router.post('/skills', (req, res, next) => {
@@ -33,18 +35,17 @@ router.post('/skills', (req, res, next) => {
     в переменной cities - Максимальное число городов в туре
     в переменной years - Лет на сцене в качестве скрипача
   */
-    const { age, concerts, cities, years } = req.body
-    const newSkill = {
-      age: Number(age),
-      concerts: Number(concerts),
-      cities: Number(cities),
-      years: Number(years)
+    const { number, text } = req.body
+    const newSkill = []
+    newSkill.push({
+      number: Number(number),
+      text: text
+    })
+    for (let i = 0; i < newSkill.length; i++) {
+      newSkill[i].number += 1; 
     }
-    db.get('skills')
-    .push(newSkill)
-    .write()
   
-  res.send('Данные о навыках успешно сохранены')
+    req.flash('msgskill')
 })
 
 router.post('/upload', (req, res, next) => {
@@ -55,8 +56,8 @@ router.post('/upload', (req, res, next) => {
     в переменной price - Цена товара
     На текущий момент эта информация хранится в файле data.json  в массиве products
   */
-  const form = formidable({ multiples: true })
-  const upload = path.join('./public', 'upload')
+  const form = new formidable.IncomingForm()
+  const upload = path.join('./upload')
 
   if (!fs.existsSync(upload)) {
     fs.mkdirSync(upload)
@@ -74,7 +75,7 @@ router.post('/upload', (req, res, next) => {
     const valid = validation(fields, files)
     if (valid.err) {
       fs.unlinkSync(files.photo.path)
-      return res.redirect(`/?msg=${valid.status}`)
+      return res.redirect(req.flash('msgfile'))
     }
 
     const newProduct = {
@@ -85,17 +86,13 @@ router.post('/upload', (req, res, next) => {
 
     db.get('products')
       .push(newProduct)
-      .write()
-    
-    
-
-   
+      .write()   
   })
-  res.send('Объект товара успешно сохранен на стороне сервера')
+  req.flash('msgfile')
 })
 
 const validation = (fields, files) => {
-  if (files.photo.name === '' || files.photo.size === 0) {
+  if (!files.photo) {
     return { status: 'Не загружена картинка!', err: true }
   }
   if (!fields.name) {

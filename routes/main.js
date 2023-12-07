@@ -19,12 +19,13 @@ router.post('/', (req, res, next) => {
 
   if(!email || !name || !message) {
     req.flash('message', 'Введите корректные данные')
+    return res.redirect('/')
   } else {
     const transporter = nodemailer.createTransport(config.mail.smtp)
 
     const mailOptions = {
       from:  `'${req.body.name}' <${req.body.email}>`,
-      to: config.mail.smpt.auth.user,
+      to: config.mail.smtp.auth.user,
       subject: config.mail.subject,
       text: message
     }
@@ -32,15 +33,15 @@ router.post('/', (req, res, next) => {
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
         // console.log(error);
-        req.flash('Ошибка при отправке письма');
+        req.flash( 'message', 'Ошибка при отправке письма');
       } else {
         // console.log('Письмо успешно отправлено: ' + info.response);
-        req.flash('Письмо успешно отправлено');
+        req.flash('message', 'Письмо успешно отправлено');
       }
-    })
-  }
 
-  res.redirect('/')
+      res.redirect('/')
+    })
+  }  
 })
 
 module.exports = router

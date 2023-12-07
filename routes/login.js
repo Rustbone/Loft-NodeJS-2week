@@ -2,7 +2,8 @@ const express = require('express')
 const router = express.Router()
 
 router.get('/', (req, res, next) => {
-  res.render('pages/login', { title: 'SigIn page' })
+  const msglogin = req.flash('formStatus')[0]
+  res.render('pages/login', { title: 'SigIn page', msglogin })
 })
 
 router.post('/', (req, res, next) => {
@@ -13,11 +14,9 @@ router.post('/', (req, res, next) => {
     req.session.isLoggedIn = true
     res.redirect('/admin')
   } else {
-    req.flash('error', 'Неправильные данные')
+    req.flash('formStatus', 'error')
     res.redirect('/login')
   }
-
-  res.send('Реализовать функцию входа по email и паролю')
 })
 
 module.exports = router
