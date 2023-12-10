@@ -5,17 +5,17 @@ const db = require('../db')
 const path = require('path')
 const fs = require('fs')
 
-// const skills = db.get('skills').value()
-// const products = db.get('products').value()
-
 router.get('/', (req, res, next) => {  
   // TODO: Реализовать, подстановку в поля ввода формы 'Счетчики'
   // актуальных значений из сохраненых (по желанию)
-  // const savedSkill = db.get('skills').value()
-  // const savedFiles = db.get('files').value() savedSkill, savedFiles,
-  // ,
-
-  res.render('pages/admin', { title: 'Admin page', msgskill: req.flash('message')[0], msgfile: req.flash('message')[0] }) 
+  fs.readFile('data.json', 'utf8', (err, data) => {
+    if (err) {
+      console.error(err)
+      return
+    }
+    const savedSkill = JSON.parse(data).skills.map(skill => skill.number)
+    res.render('pages/admin', { title: 'Admin page', msgskill: req.flash('msgskill')[0], msgfile: req.flash('msgfile')[0], number: savedSkill}) 
+  }) 
 })
 
 router.post('/skills', (req, res, next) => {
@@ -35,7 +35,7 @@ router.post('/skills', (req, res, next) => {
       .write();
     })  
   
-    req.flash('message', 'Навыки обновленны')
+    req.flash('msgskill', 'Навыки обновленны')
     res.redirect('/admin')
 })
 
@@ -57,8 +57,8 @@ router.post('/upload', (req, res, next) => {
 
   form.parse(req, (err, fields, files) => {
     if (err) {
-      console.log(err);
-      req.flash('message', 'Ошибка при загрузке файла');
+      console.log(err)
+      req.flash('msgfile', 'Ошибка при загрузке файла');
       return res.redirect('/admin')
     }
 
@@ -70,7 +70,7 @@ router.post('/upload', (req, res, next) => {
     const valid = validation(fields, files)
     if (valid.err) {
       fs.unlinkSync(filepath)
-      req.flash('message', valid.status)
+      req.flash('msgfile', valid.status)
       return res.redirect('/admin')
     } else {
       fs.renameSync(filepath, path.join(form.uploadDir, originalFilename))
@@ -86,19 +86,23 @@ router.post('/upload', (req, res, next) => {
       .push(newProduct)
       .write()   
   })
-  req.flash('message', 'Файлы успешно добавлены')
+  req.flash('msgfile', 'Файлы успешно добавлены')
   res.redirect('/admin')
 })
 
 const validation = (fields, files) => {
   const { photo } = files
-  if (!photo || photo.length === 0) {
+  if (!photo) {
     return { status: 'Не загружена картинка!', err: true }
   }
-  if (!fields.name || fields.name.length === 0 || !fields.price || fields.price.length === 0) {
-    return { status: 'Не указано описание картинки!', err: true }
+  if (!fields.name || fields.name.length === 0) {
+    return { status: 'Не указано название товара!', err: true }
+  }
+  if (!fields.price || fields.price.length === 0) {
+    return { status: 'Не указана цена товара!', err: true }
   }
   return { status: 'Ok', err: false }
 }
 
 module.exports = router
+// .name || fields.name.length === 0 || !fields.price || fields.price.length === 0
