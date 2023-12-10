@@ -5,28 +5,47 @@ const db = require('../db')
 const path = require('path')
 const fs = require('fs')
 
+
+
 router.get('/', (req, res, next) => {  
   // TODO: Реализовать, подстановку в поля ввода формы 'Счетчики'
   // актуальных значений из сохраненых (по желанию)
-  fs.readFile('data.json', 'utf8', (err, data) => {
-    if (err) {
-      console.error(err)
-      return
-    }
-    const savedSkill = JSON.parse(data).skills.map(skill => skill.number)
-    res.render('pages/admin', { title: 'Admin page', msgskill: req.flash('msgskill')[0], msgfile: req.flash('msgfile')[0], number: savedSkill}) 
-  }) 
+  // fs.readFile('data.json', 'utf8', (err, data) => {
+  //   if (err) {
+  //     console.error(err)
+  //     return
+  //   }
+  //   const savedSkill = JSON.parse(data).skills.map(skill => skill.number)
+  //   req.flash('skill', savedSkill)
+  //   // console.log(savedSkill)
+  //   res.render('pages/admin', { 
+  //     title: 'Admin page', 
+  //     msgskill: req.flash('msgskill')[0],
+  //     msgfile: req.flash('msgfile')[0],
+  //     value: savedSkill
+  //   }) 
+  // }) 
+  const skills = db.get('skills').value()
+  const skill = skills.map(skill => skill.number)
+  // req.flash('value', skill)
+  
+  res.render('pages/admin', { 
+        title: 'Admin page', 
+        msgskill: req.flash('msgskill')[0],
+        msgfile: req.flash('msgfile')[0],
+        value: skill
+      })
 })
 
 router.post('/skills', (req, res, next) => {
   /*
   TODO: Реализовать сохранение нового объекта со значениями блока скиллов
-
     в переменной age - Возраст начала занятий на скрипке
     в переменной concerts - Концертов отыграл
     в переменной cities - Максимальное число городов в туре
     в переменной years - Лет на сцене в качестве скрипача
   */
+    
     const formData = req.body
     Object.keys(formData).forEach((key) => {
       db.get('skills')
@@ -34,7 +53,7 @@ router.post('/skills', (req, res, next) => {
       .assign({ number: formData[key] }) // Замените 'новое значение' на актуальное значение
       .write();
     })  
-  
+      
     req.flash('msgskill', 'Навыки обновленны')
     res.redirect('/admin')
 })
@@ -64,8 +83,8 @@ router.post('/upload', (req, res, next) => {
 
     const { name, price } = fields
     const {filepath, originalFilename }= files.photo[0]
-    console.log(fields)
-    console.log(files)
+    // console.log(fields)
+    console.log(files.photo)
     // const { photo } = files
     const valid = validation(fields, files)
     if (valid.err) {
@@ -84,25 +103,25 @@ router.post('/upload', (req, res, next) => {
 
     db.get('products')
       .push(newProduct)
-      .write()   
-  })
-  req.flash('msgfile', 'Файлы успешно добавлены')
-  res.redirect('/admin')
+      .write()
+
+    req.flash('msgfile', 'Файлы успешно добавлены')
+    res.redirect('/admin')   
+  })  
 })
 
 const validation = (fields, files) => {
-  const { photo } = files
-  if (!photo) {
+  console.log(files.photo.originalFilename)
+  if (files.photo.size === 0) {
     return { status: 'Не загружена картинка!', err: true }
   }
-  if (!fields.name || fields.name.length === 0) {
+  if (!fields.name[0]) {
     return { status: 'Не указано название товара!', err: true }
   }
-  if (!fields.price || fields.price.length === 0) {
+  if (!fields.price[0]) {
     return { status: 'Не указана цена товара!', err: true }
   }
   return { status: 'Ok', err: false }
 }
 
 module.exports = router
-// .name || fields.name.length === 0 || !fields.price || fields.price.length === 0

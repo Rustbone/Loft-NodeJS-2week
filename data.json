@@ -2,22 +2,22 @@
   "skills": [
     {
       "type": "age",
-      "number": "",
+      "number": "345",
       "text": "Возраст начала занятий на скрипке"
     },
     {
       "type": "concerts",
-      "number": "",
+      "number": "24",
       "text": "Концертов отыграл"
     },
     {
       "type": "cities",
-      "number": "",
+      "number": "56",
       "text": "Максимальное число городов в туре"
     },
     {
       "type": "years",
-      "number": "",
+      "number": "45",
       "text": "Лет на сцене в качестве скрипача"
     }
   ],
@@ -66,6 +66,11 @@
       "src": "./assets/img/products/Work9.jpg",
       "name": "Вино вдохновение",
       "price": 600
+    },
+    {
+      "name": "",
+      "price": 0,
+      "src": "/21405 2 1.jpg"
     }
   ]
 }
